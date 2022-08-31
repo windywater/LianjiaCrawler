@@ -41,6 +41,7 @@ class HouseCrawler(object):
             house_info["date"] = today
             house_info["houses"] = city_house_array
 
+            print("Writing to file...")
             house_file = os.path.split(os.path.realpath(__file__))[0] + "\\houses\\" + city_name + "\\" + today + ".json"
             self.write_file(house_file, house_info) 
 
@@ -106,18 +107,18 @@ class HouseCrawler(object):
                 basic_info = house_elt.find("div", "houseInfo").get_text()
                 [layout, area] = self._parse_basic_info(basic_info)
                 
-                total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").strip()
+                total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:").strip()
                 average_price = house_elt.find("div", "unitPrice").get_text().replace("元/平", "").replace(",", "")
                 
                 house_dict = {}
                 house_dict["u"] = house_url
                 house_dict["t"] = title
                 house_dict["l"] = layout
-                house_dict["ar"] = area
+                house_dict["ar"] = float(area)
                 house_dict["ad"] = address
                 house_dict["r"] = region
-                house_dict["tp"] = total_price
-                house_dict["ap"] = average_price
+                house_dict["tp"] = float(total_price)
+                house_dict["ap"] = float(average_price)
                 house_array.append(house_dict)
             
             print("Sleeping for a while...")

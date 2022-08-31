@@ -3,6 +3,21 @@
     "page_interval": 2.5,
     "cities": [
         {
+            "name": "wuhan",
+            "id": "wh",
+            "regions": ["hongshan", "donghugaoxin", "jiangan", "jianghan", "wuchang", "qingshan", "hanyang", "jiangxia"]
+        },
+        {
+            "name": "shenzhen",
+            "id": "sz",
+            "regions": ["luohuqu", "futianqu", "nanshanqu", "baoanqu", "longgangqu", "longhuaqu"]
+        },
+        {
+            "name": "beijing",
+            "id": "bj",
+            "regions": ["dongcheng", "xicheng", "chaoyang", "haidian", "fengtai", "tongzhou", "changping", "daxing"]
+        },
+        {
             "name": "hangzhou",
             "id": "hz",
             "regions": ["xihu", "qiantangqu", "linpingqu", "gongshu", "shangcheng", "binjiang", "yuhang", "xiaoshan", "linan"]
