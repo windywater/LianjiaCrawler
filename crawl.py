@@ -107,7 +107,7 @@ class HouseCrawler(object):
                 basic_info = house_elt.find("div", "houseInfo").get_text()
                 [layout, area] = self._parse_basic_info(basic_info)
                 
-                total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:").strip()
+                total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:", "").strip()
                 average_price = house_elt.find("div", "unitPrice").get_text().replace("元/平", "").replace(",", "")
                 
                 house_dict = {}
@@ -123,9 +123,9 @@ class HouseCrawler(object):
             
             print("Sleeping for a while...")
             time.sleep(float(self.cfg["page_interval"]))
-            if page % 10 == 0:
+            if page % int(self.cfg["pages_of_group"]) == 0:
                 print("Sleeping more...")
-                time.sleep(3)
+                time.sleep(self.cfg["group_interval"])
 
             page += 1
 
@@ -142,4 +142,9 @@ class HouseCrawler(object):
 
 if __name__ == '__main__':
     crawler = HouseCrawler()
+    begin = time.time()
     crawler.crawl()
+    end = time.time()
+    elapsed = time.localtime(end-begin)
+    print("Elapsed: ", elapsed)
+    #print("Cost {} housrs {} minutes {} seconds.".format(elapsed.tm_hour, elapsed.tm_min, elapsed.tm_sec))
