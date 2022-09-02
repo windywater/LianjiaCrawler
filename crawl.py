@@ -101,26 +101,29 @@ class HouseCrawler(object):
                 if house_url in self.house_set:
                     continue
 
-                self.house_set.add(house_url)
-                title = house_elt.find("div", "title").find("a").get_text()
-                address = house_elt.find("div", "flood").get_text().replace(" ", "")
-                basic_info = house_elt.find("div", "houseInfo").get_text()
-                [layout, area] = self._parse_basic_info(basic_info)
+                try:
+                    self.house_set.add(house_url)
+                    title = house_elt.find("div", "title").find("a").get_text()
+                    address = house_elt.find("div", "flood").get_text().replace(" ", "")
+                    basic_info = house_elt.find("div", "houseInfo").get_text()
+                    [layout, area] = self._parse_basic_info(basic_info)
+                    
+                    total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:", "").strip()
+                    average_price = house_elt.find("div", "unitPrice").get_text().replace("元/平", "").replace(",", "")
+                    
+                    house_dict = {}
+                    house_dict["u"] = house_url
+                    house_dict["t"] = title
+                    house_dict["l"] = layout
+                    house_dict["ar"] = float(area)
+                    house_dict["ad"] = address
+                    house_dict["r"] = region
+                    house_dict["tp"] = float(total_price)
+                    house_dict["ap"] = float(average_price)
+                    house_array.append(house_dict)
+                except Exception as e:
+                     print("exception:" + str(e))
                 
-                total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:", "").strip()
-                average_price = house_elt.find("div", "unitPrice").get_text().replace("元/平", "").replace(",", "")
-                
-                house_dict = {}
-                house_dict["u"] = house_url
-                house_dict["t"] = title
-                house_dict["l"] = layout
-                house_dict["ar"] = float(area)
-                house_dict["ad"] = address
-                house_dict["r"] = region
-                house_dict["tp"] = float(total_price)
-                house_dict["ap"] = float(average_price)
-                house_array.append(house_dict)
-            
             print("Sleeping for a while...")
             time.sleep(float(self.cfg["page_interval"]))
             if page % int(self.cfg["pages_of_group"]) == 0:
@@ -146,5 +149,5 @@ if __name__ == '__main__':
     crawler.crawl()
     end = time.time()
     elapsed = time.localtime(end-begin)
-    print("Elapsed: ", elapsed)
+    print("Elapsed: ", end-begin)
     #print("Cost {} housrs {} minutes {} seconds.".format(elapsed.tm_hour, elapsed.tm_min, elapsed.tm_sec))
