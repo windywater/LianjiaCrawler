@@ -150,4 +150,4 @@ if __name__ == '__main__':
     end = time.time()
     m, s = divmod(int(end-begin), 60)
     h, m = divmod(m, 60)
-    print("Elapsed: {} hours {} minutes {} secnods".format(h, m, s))
+    print("Elapsed: {} hours {} minutes {} seconds".format(h, m, s))
