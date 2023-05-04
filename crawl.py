@@ -69,6 +69,11 @@ class HouseCrawler(object):
             try:
                 response = requests.get(page_url, headers=headers, timeout=8)
                 page_content = response.content.decode("utf-8", "ignore")
+                
+                #page_file = os.path.split(os.path.realpath(__file__))[0] + "\\{}.html".format(page)
+                #with open(page_file, mode='w', encoding='utf_8_sig') as file_obj:
+                #    file_obj.write(page_content)
+        
             except Exception as e:
                 print("exception:" + str(e))
                 page += 1
@@ -77,59 +82,56 @@ class HouseCrawler(object):
 
             page_soup = BeautifulSoup(page_content, "html.parser")
 
-            # find max page
-            if not max_page_found:
-                page_data = page_soup.find("div", "page-box house-lst-page-box")["page-data"]
-                max_page = int(json.loads(page_data)["totalPage"])
-                print("max page:", max_page)
-                max_page_found = True
+            try:
+                # find max page
+                if not max_page_found:
+                    page_data = page_soup.find("div", "page-box house-lst-page-box")["page-data"]
+                    max_page = int(json.loads(page_data)["totalPage"])
+                    print("max page:", max_page)
+                    max_page_found = True
 
-            ul_elt = page_soup.find("ul", "sellListContent")
-            if len(ul_elt) == 0:
-                print("No house, maybe the request has something problem. You can retry or stop(r/s):")
-                next_action = input()
-                if next_action == "r":
-                    print("Retrying...")
-                    continue
-                else:
-                    sys.exit(0)
+                ul_elt = page_soup.find("ul", "sellListContent")
+                print("house count:", len(ul_elt))
 
-            print("house count:", len(ul_elt))
+                for house_elt in ul_elt:
+                    house_url = house_elt.find("a", "noresultRecommend img LOGCLICKDATA")["href"]
+                    if house_url in self.house_set:
+                        continue
 
-            for house_elt in ul_elt:
-                house_url = house_elt.find("a", "noresultRecommend img LOGCLICKDATA")["href"]
-                if house_url in self.house_set:
-                    continue
-
-                try:
-                    self.house_set.add(house_url)
-                    title = house_elt.find("div", "title").find("a").get_text()
-                    address = house_elt.find("div", "flood").get_text().replace(" ", "")
-                    basic_info = house_elt.find("div", "houseInfo").get_text()
-                    [layout, area] = self._parse_basic_info(basic_info)
+                    try:
+                        self.house_set.add(house_url)
+                        title = house_elt.find("div", "title").find("a").get_text()
+                        address = house_elt.find("div", "flood").get_text().replace(" ", "")
+                        basic_info = house_elt.find("div", "houseInfo").get_text()
+                        [layout, area] = self._parse_basic_info(basic_info)
+                        
+                        total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:", "").strip()
+                        average_price = house_elt.find("div", "unitPrice").get_text().replace("元/平", "").replace(",", "")
+                        
+                        house_dict = {}
+                        house_dict["u"] = house_url
+                        house_dict["t"] = title
+                        house_dict["l"] = layout
+                        house_dict["ar"] = float(area)
+                        house_dict["ad"] = address
+                        house_dict["r"] = region
+                        house_dict["tp"] = float(total_price)
+                        house_dict["ap"] = float(average_price)
+                        house_array.append(house_dict)
+                    except Exception as e:
+                        print("exception:" + str(e))
                     
-                    total_price = house_elt.find("div", "totalPrice totalPrice2").get_text().replace("万", "").replace("参考价:", "").strip()
-                    average_price = house_elt.find("div", "unitPrice").get_text().replace("元/平", "").replace(",", "")
-                    
-                    house_dict = {}
-                    house_dict["u"] = house_url
-                    house_dict["t"] = title
-                    house_dict["l"] = layout
-                    house_dict["ar"] = float(area)
-                    house_dict["ad"] = address
-                    house_dict["r"] = region
-                    house_dict["tp"] = float(total_price)
-                    house_dict["ap"] = float(average_price)
-                    house_array.append(house_dict)
-                except Exception as e:
-                     print("exception:" + str(e))
+                print("Sleeping for a while...")
+                time.sleep(float(self.cfg["page_interval"]))
+                if page % int(self.cfg["pages_of_group"]) == 0:
+                    print("Sleeping more...")
+                    time.sleep(self.cfg["group_interval"])
+            except Exception as ex:
+                print("exception:" + str(ex))
+                print("There's something error, it will retry after a few seconds...")
+                time.sleep(3)
+                continue
                 
-            print("Sleeping for a while...")
-            time.sleep(float(self.cfg["page_interval"]))
-            if page % int(self.cfg["pages_of_group"]) == 0:
-                print("Sleeping more...")
-                time.sleep(self.cfg["group_interval"])
-
             page += 1
 
         return house_array
