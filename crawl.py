@@ -126,7 +126,7 @@ class HouseCrawler(object):
                 if page % int(self.cfg["pages_of_group"]) == 0:
                     print("Sleeping more...")
                     time.sleep(self.cfg["group_interval"])
-            except Exception as ex:
+            except Exception as ex:     # 有时若干密集请求后，链家会返回无结果的页面，一般重试一下就成功了
                 print("exception:" + str(ex))
                 print("There's something error, it will retry after a few seconds...")
                 time.sleep(3)
