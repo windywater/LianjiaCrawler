@@ -129,7 +129,7 @@ class HouseCrawler(object):
             except Exception as ex:     # 有时若干密集请求后，链家会返回无结果的页面，一般重试一下就成功了
                 print("exception:" + str(ex))
                 print("There's something error, it will retry after a few seconds...")
-                time.sleep(3)
+                time.sleep(1.2)
                 continue
                 
             page += 1
