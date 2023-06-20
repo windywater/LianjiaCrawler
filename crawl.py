@@ -13,6 +13,7 @@ class HouseCrawler(object):
         requests.adapters.DEFAULT_RETRIES = 5
         sess = requests.session()
         sess.keep_alive = False
+        self.use_proxy = False
         self.url_template = "https://{}.lianjia.com/ershoufang/{}/pg{}/" # (id, region, page)
         self.house_set = set()
         self.load_config()
@@ -52,12 +53,17 @@ class HouseCrawler(object):
         return [layout, area]
 
     def crawl_region(self, city_id, region):
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0', 'Cookie': self.cfg["cookie"]}
-
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/49.0', 'Cookie': self.cfg["cookie"]}
+        proxies = {
+            'http': 'http://127.0.0.1:7890',
+            'https': 'https://127.0.0.1:7890'
+        }
+        
         house_array = []
         page = 1
         max_page = 100
         max_page_found = False
+        slow_count = 0
 
         while True:
             if page > max_page:
@@ -67,7 +73,20 @@ class HouseCrawler(object):
             print(page_url)
 
             try:
-                response = requests.get(page_url, headers=headers, timeout=8)
+                time1 = time.time()
+                response = requests.get(page_url, headers=headers, proxies=proxies if self.use_proxy else None,  timeout=8)
+                time2 = time.time()
+                    
+                # 检查请求时间，如果太长（一般10秒左右）说明爬虫被网站限制了，启动clash代理
+                if (not self.use_proxy) and (time2 - time1) > 3:
+                    slow_count += 1
+                    
+                    if slow_count > 2:
+                        print("Too slow, prepare to open clash proxy...")
+                        os.startfile(r"D:\Program Files\Clash for Windows\Clash for Windows.exe")
+                        self.use_proxy = True
+                        time.sleep(15)
+                    
                 page_content = response.content.decode("utf-8", "ignore")
                 
                 #page_file = os.path.split(os.path.realpath(__file__))[0] + "\\{}.html".format(page)
