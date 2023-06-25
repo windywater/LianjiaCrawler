@@ -5,8 +5,8 @@ import sys
 import time
 import requests
 from bs4 import BeautifulSoup  
-import sqlite3
 import json
+import subprocess
 
 class HouseCrawler(object):
     def __init__(self):
@@ -14,6 +14,7 @@ class HouseCrawler(object):
         sess = requests.session()
         sess.keep_alive = False
         self.use_proxy = False
+        self.proxy_proc = None
         self.url_template = "https://{}.lianjia.com/ershoufang/{}/pg{}/" # (id, region, page)
         self.house_set = set()
         self.load_config()
@@ -44,7 +45,12 @@ class HouseCrawler(object):
 
             print("Writing to file...")
             house_file = os.path.split(os.path.realpath(__file__))[0] + "\\houses\\" + city_name + "\\" + today + ".json"
-            self.write_file(house_file, house_info) 
+            self.write_file(house_file, house_info)
+            
+        # 如果有代理，关闭
+        if self.proxy_proc:
+            self.proxy_proc.terminate()
+            self.proxy_proc.wait()
 
     def _parse_basic_info(self, text):
         basic_list = list(filter(None, text.split("|")))
@@ -83,7 +89,7 @@ class HouseCrawler(object):
                     
                     if slow_count > 2:
                         print("Too slow, prepare to open clash proxy...")
-                        os.startfile(r"D:\Program Files\Clash for Windows\Clash for Windows.exe")
+                        self.proxy_proc = subprocess.Popen([r"D:\Program Files\Clash for Windows\Clash for Windows.exe"])
                         self.use_proxy = True
                         time.sleep(15)
                     
