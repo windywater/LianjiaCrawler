@@ -47,6 +47,9 @@ class HouseCrawler(object):
             house_file = os.path.split(os.path.realpath(__file__))[0] + "\\houses\\" + city_name + "\\" + today + ".json"
             self.write_file(house_file, house_info)
             
+            print("Sleeping for a long time...")
+            time.sleep(60)
+            
         # 如果有代理，关闭
         if self.proxy_proc:
             self.proxy_proc.terminate()
